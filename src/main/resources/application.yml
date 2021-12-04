@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      host: "3.69.180.87"
+      port: 27017
+      database: "wassapp"
+      username: "wassapp"
+      password: "wassappBilkentP@ss!"
+      auto-index-creation: true
