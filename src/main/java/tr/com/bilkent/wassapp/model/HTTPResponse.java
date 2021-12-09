@@ -1,8 +1,10 @@
 package tr.com.bilkent.wassapp.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class HTTPResponse<T> {
 
     private int status;
