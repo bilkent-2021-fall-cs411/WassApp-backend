@@ -5,23 +5,23 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class HTTPResponse<T> {
+public class WassAppResponse<T> {
 
     private int status;
     private String message;
     private T data;
 
-    public HTTPResponse(String message) {
+    public WassAppResponse(String message) {
         this.message = message;
         this.status = 200;
     }
 
-    public HTTPResponse(T data) {
+    public WassAppResponse(T data) {
         this("success");
         this.data = data;
     }
 
-    public HTTPResponse(int status, String message) {
+    public WassAppResponse(int status, String message) {
         this.message = message;
         this.status = status;
     }

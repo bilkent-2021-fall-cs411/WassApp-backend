@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tr.com.bilkent.wassapp.model.HTTPResponse;
+import tr.com.bilkent.wassapp.model.WassAppResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,16 +24,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public HTTPResponse<String> handleRuntimeException(RuntimeException ex) {
+    public WassAppResponse<String> handleRuntimeException(RuntimeException ex) {
         log.error(ex.getMessage());
-        return new HTTPResponse<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new WassAppResponse<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public HTTPResponse<String> handleRuntimeException(Exception ex) {
+    public WassAppResponse<String> handleRuntimeException(Exception ex) {
         log.error(ex.getMessage());
-        return new HTTPResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        return new WassAppResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
     }
 
     @Override
@@ -41,7 +41,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("HTTP message not readable exception: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new HTTPResponse<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+                .body(new WassAppResponse<>(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
     @Override
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new HTTPResponse<>(HttpStatus.BAD_REQUEST.value(), "Field validation errors exists", errors));
+                .body(new WassAppResponse<>(HttpStatus.BAD_REQUEST.value(), "Field validation errors exists", errors));
     }
 
 }
