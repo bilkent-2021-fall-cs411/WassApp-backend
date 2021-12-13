@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tr.com.bilkent.wassapp.model.WassAppResponse;
+import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public WassAppResponse<String> handleRuntimeException(Exception ex) {
+    public WassAppResponse<String> handleException(Exception ex) {
         log.error(ex.getMessage());
         return new WassAppResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
     }
