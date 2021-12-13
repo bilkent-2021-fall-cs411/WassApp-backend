@@ -2,6 +2,10 @@ package tr.com.bilkent.wassapp.config;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +39,13 @@ public class SocketIOConfig {
                 return passwordEncoder.matches(password, user.getPassword());
             } catch (UsernameNotFoundException e) {
                 return false;
+            }
+        });
+        config.setJsonSupport(new JacksonJsonSupport(new JavaTimeModule()) {
+            @Override
+            protected void init(ObjectMapper objectMapper) {
+                super.init(objectMapper);
+                super.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
             }
         });
 

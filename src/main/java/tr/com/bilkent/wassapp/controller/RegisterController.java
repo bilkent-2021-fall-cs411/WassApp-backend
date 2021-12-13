@@ -6,23 +6,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tr.com.bilkent.wassapp.model.RegisterRequest;
-import tr.com.bilkent.wassapp.model.WassAppResponse;
+import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
+import tr.com.bilkent.wassapp.model.payload.RegisterPayload;
 import tr.com.bilkent.wassapp.service.UserService;
 
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping
 @RequiredArgsConstructor
 @Slf4j
-public class UserController {
+public class RegisterController {
 
     private final UserService userService;
 
     @PostMapping("/register")
-    public WassAppResponse<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        userService.register(registerRequest);
+    public WassAppResponse<String> register(@Valid @RequestBody RegisterPayload registerPayload) {
+        userService.register(registerPayload);
         return new WassAppResponse<>("Ok");
     }
 }

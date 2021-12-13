@@ -1,4 +1,4 @@
-package tr.com.bilkent.wassapp.model;
+package tr.com.bilkent.wassapp.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
