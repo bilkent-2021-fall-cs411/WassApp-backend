@@ -7,11 +7,13 @@ import com.corundumstudio.socketio.listener.DataListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tr.com.bilkent.wassapp.config.AuthContextHolder;
 import tr.com.bilkent.wassapp.model.dto.MessageDTO;
 import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
 import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
 import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
 import tr.com.bilkent.wassapp.service.MessageService;
+import tr.com.bilkent.wassapp.service.UserService;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Validator;
@@ -24,12 +26,24 @@ public class SocketIOReceiver {
     private final SocketIOServer server;
     private final Validator validator;
     private final MessageService messageService;
+    private final UserService userService;
 
     @PostConstruct
     public void start() {
+        server.addEventListener("whoAmI", String.class, whoAmIListener());
         server.addEventListener("getChats", String.class, getChatsListener());
         server.addEventListener("message", SendMessagePayload.class, messageListener());
         server.addEventListener("getMessages", GetMessagesPayload.class, getMessagesListener());
+    }
+
+    private DataListener<String> whoAmIListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
+                String authenticatedUser = AuthContextHolder.getEmail();
+                ackSender.sendAckData(userService.getUserDTOByEmail(authenticatedUser));
+            }
+        };
     }
 
     private DataListener<String> getChatsListener() {

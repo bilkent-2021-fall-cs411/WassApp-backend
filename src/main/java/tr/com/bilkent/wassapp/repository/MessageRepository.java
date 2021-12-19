@@ -12,7 +12,7 @@ import tr.com.bilkent.wassapp.collection.Message;
 import java.time.OffsetDateTime;
 
 @Repository
-public interface MessageRepository extends MongoRepository<Message, String> {
+public interface MessageRepository extends MongoRepository<Message, String>, CustomizedMessageRepository {
 
     @Query(value = "{\n" +
             "    $or: [{\n" +

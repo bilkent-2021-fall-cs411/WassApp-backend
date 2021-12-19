@@ -1,7 +1,7 @@
 package tr.com.bilkent.wassapp.model.dto;
 
 import lombok.Data;
-import tr.com.bilkent.wassapp.collection.enums.Status;
+import tr.com.bilkent.wassapp.collection.enums.MessageStatus;
 
 import java.time.OffsetDateTime;
 
@@ -12,5 +12,5 @@ public class MessageDTO {
     private String sender;
     private String receiver;
     private OffsetDateTime sendDate;
-    private Status status;
+    private MessageStatus status;
 }

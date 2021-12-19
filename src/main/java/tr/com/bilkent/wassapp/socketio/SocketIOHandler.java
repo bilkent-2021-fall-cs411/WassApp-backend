@@ -33,11 +33,13 @@ public class SocketIOHandler {
         server.start();
     }
 
-    public void send(String receiver, String eventName, Object data) {
+    public boolean send(String receiver, String eventName, Object data) {
         Collection<UUID> receiverSessions = clients.get(receiver);
-        if (!CollectionUtils.isEmpty(receiverSessions)) {
-            receiverSessions.forEach(uuid -> server.getClient(uuid).sendEvent(eventName, data));
+        if (CollectionUtils.isEmpty(receiverSessions)) {
+            return false;
         }
+        receiverSessions.forEach(uuid -> server.getClient(uuid).sendEvent(eventName, data));
+        return true;
     }
 
     private ConnectListener connectListener() {

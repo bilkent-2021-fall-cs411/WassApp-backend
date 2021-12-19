@@ -8,16 +8,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import tr.com.bilkent.wassapp.collection.Message;
-import tr.com.bilkent.wassapp.collection.enums.Status;
+import tr.com.bilkent.wassapp.collection.enums.MessageStatus;
 import tr.com.bilkent.wassapp.config.AuthContextHolder;
+import tr.com.bilkent.wassapp.model.dto.ChatDTO;
 import tr.com.bilkent.wassapp.model.dto.MessageDTO;
 import tr.com.bilkent.wassapp.model.dto.MessagePageDTO;
+import tr.com.bilkent.wassapp.model.dto.UserDTO;
 import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
 import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
 import tr.com.bilkent.wassapp.repository.MessageRepository;
 import tr.com.bilkent.wassapp.socketio.SocketIOHandler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,24 +29,33 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ModelMapper modelMapper;
     private final SocketIOHandler socketIOHandler;
+    private final UserService userService;
 
-    public MessagePageDTO loadChats() {
+    public List<ChatDTO> loadChats() {
         String authenticatedUser = AuthContextHolder.getEmail();
-        List<Message> chats = messageRepository.findChatsOfUser(authenticatedUser).getMappedResults();
+        List<Message> chatLastMessages = messageRepository.findChatsOfUser(authenticatedUser).getMappedResults();
 
-        List<MessageDTO> messages = modelMapper.map(chats, new TypeToken<>() {
-        }.getType());
-        return new MessagePageDTO((long) messages.size(), messages);
+        List<MessageDTO> lastMessages = modelMapper.map(chatLastMessages, new TypeToken<List<MessageDTO>>() {}.getType());
+        return lastMessages.stream().map(message -> {
+            String otherUserEmail = authenticatedUser.equals(message.getSender()) ? message.getReceiver() : message.getSender();
+            UserDTO otherUser = userService.getUserDTOByEmail(otherUserEmail);
+            return new ChatDTO(otherUser, message);
+        }).collect(Collectors.toList());
     }
 
     public MessageDTO sendMessage(SendMessagePayload sendMessagePayload) {
         Message message = modelMapper.map(sendMessagePayload, Message.class);
         message.setSender(AuthContextHolder.getEmail());
-        message.setStatus(Status.SENT);
+        message.setStatus(MessageStatus.SENT);
         message = messageRepository.save(message);
 
         MessageDTO messageDTO = modelMapper.map(message, MessageDTO.class);
-        socketIOHandler.send(sendMessagePayload.getReceiver(), "message", messageDTO);
+        boolean isDelivered = socketIOHandler.send(sendMessagePayload.getReceiver(), "message", messageDTO);
+        if (isDelivered) {
+            message.setStatus(MessageStatus.DELIVERED);
+            messageDTO.setStatus(MessageStatus.DELIVERED);
+            messageRepository.save(message);
+        }
         return messageDTO;
     }
 
@@ -51,9 +63,9 @@ public class MessageService {
         String authenticatedUser = AuthContextHolder.getEmail();
         Page<Message> messagePage = messageRepository.getChatMessages(
                 authenticatedUser, data.getChat(), data.getBeforeDate(), PageRequest.ofSize(data.getCount()));
+        messageRepository.markAllAsRead(authenticatedUser, data.getChat());
 
-        List<MessageDTO> messages = modelMapper.map(messagePage.getContent(), new TypeToken<>() {
-        }.getType());
+        List<MessageDTO> messages = modelMapper.map(messagePage.getContent(), new TypeToken<>() {}.getType());
         return new MessagePageDTO(messagePage.getTotalElements(), messages);
     }
 }

@@ -2,10 +2,12 @@ package tr.com.bilkent.wassapp.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tr.com.bilkent.wassapp.collection.User;
+import tr.com.bilkent.wassapp.model.dto.UserDTO;
 import tr.com.bilkent.wassapp.model.payload.RegisterPayload;
 import tr.com.bilkent.wassapp.repository.UserRepository;
 
@@ -18,10 +20,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     public User getUserByEmail(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         return userOptional.orElseThrow(() -> new UsernameNotFoundException("No such user"));
+    }
+
+    public UserDTO getUserDTOByEmail(String email) {
+        User user = getUserByEmail(email);
+        return modelMapper.map(user, UserDTO.class);
     }
 
     public void register(RegisterPayload registerPayload) {

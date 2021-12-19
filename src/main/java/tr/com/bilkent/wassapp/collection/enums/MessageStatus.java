@@ -1,5 +1,5 @@
 package tr.com.bilkent.wassapp.collection.enums;
 
-public enum Status {
+public enum MessageStatus {
     SENT, DELIVERED, READ
 }
