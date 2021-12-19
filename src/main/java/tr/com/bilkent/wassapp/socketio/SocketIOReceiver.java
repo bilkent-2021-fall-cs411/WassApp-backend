@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tr.com.bilkent.wassapp.config.AuthContextHolder;
 import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
+import tr.com.bilkent.wassapp.model.payload.ContactPayload;
 import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
+import tr.com.bilkent.wassapp.model.payload.MessageIdPayload;
 import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
 import tr.com.bilkent.wassapp.service.MessageService;
 import tr.com.bilkent.wassapp.service.UserService;
@@ -33,6 +35,8 @@ public class SocketIOReceiver {
         server.addEventListener("getChats", String.class, getChatsListener());
         server.addEventListener("message", SendMessagePayload.class, messageListener());
         server.addEventListener("getMessages", GetMessagesPayload.class, getMessagesListener());
+        server.addEventListener("deleteMessage", MessageIdPayload.class, deleteMessageListener());
+        server.addEventListener("deleteChatHistory", ContactPayload.class, deleteChatHistoryListener());
     }
 
     private DataListener<String> whoAmIListener() {
@@ -68,6 +72,26 @@ public class SocketIOReceiver {
             @Override
             public void onValidatedData(SocketIOClient client, GetMessagesPayload data, AckRequest ackSender) {
                 ackSender.sendAckData(new WassAppResponse<>(messageService.loadMessages(data)));
+            }
+        };
+    }
+
+    private ValidatedDataListener<ContactPayload> deleteChatHistoryListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, ContactPayload data, AckRequest ackSender) {
+                messageService.deleteChatHistory(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
+            }
+        };
+    }
+
+    private ValidatedDataListener<MessageIdPayload> deleteMessageListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, MessageIdPayload data, AckRequest ackSender) {
+                messageService.deleteMessage(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
             }
         };
     }

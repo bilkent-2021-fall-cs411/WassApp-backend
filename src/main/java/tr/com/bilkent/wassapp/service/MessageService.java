@@ -14,7 +14,9 @@ import tr.com.bilkent.wassapp.model.dto.ChatDTO;
 import tr.com.bilkent.wassapp.model.dto.MessageDTO;
 import tr.com.bilkent.wassapp.model.dto.MessagePageDTO;
 import tr.com.bilkent.wassapp.model.dto.UserDTO;
+import tr.com.bilkent.wassapp.model.payload.ContactPayload;
 import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
+import tr.com.bilkent.wassapp.model.payload.MessageIdPayload;
 import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
 import tr.com.bilkent.wassapp.repository.MessageRepository;
 import tr.com.bilkent.wassapp.socketio.SocketIOHandler;
@@ -68,4 +70,25 @@ public class MessageService {
         List<MessageDTO> messages = modelMapper.map(messagePage.getContent(), new TypeToken<>() {}.getType());
         return new MessagePageDTO(messagePage.getTotalElements(), messages);
     }
+
+    public void deleteChatHistory(ContactPayload data) {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        messageRepository.deleteChatHistory(authenticatedUser, data.getContact());
+
+        socketIOHandler.send(data.getContact(), "deleteChatHistory", new ContactPayload(authenticatedUser));
+    }
+
+    public void deleteMessage(MessageIdPayload data) {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        Message message = messageRepository.findById(data.getMessageId())
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (!message.getSender().equals(authenticatedUser)) {
+            throw new RuntimeException("You are not allowed to delete this message");
+        }
+        messageRepository.deleteById(data.getMessageId());
+
+        MessageDTO messageDTO = modelMapper.map(message, MessageDTO.class);
+        socketIOHandler.send(message.getReceiver(), "deleteMessage", messageDTO);
+    }
+
 }

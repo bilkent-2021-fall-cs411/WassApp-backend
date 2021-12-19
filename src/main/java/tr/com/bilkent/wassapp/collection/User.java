@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 @Data
 @Document("user")
@@ -14,4 +17,6 @@ public class User {
     private String email;
     private String displayName;
     private String password;
+    private List<String> contacts = new ArrayList<>();
+
 }
