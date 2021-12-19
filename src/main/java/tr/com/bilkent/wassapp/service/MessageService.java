@@ -32,6 +32,7 @@ public class MessageService {
     private final ModelMapper modelMapper;
     private final SocketIOHandler socketIOHandler;
     private final UserService userService;
+    private final ContactService contactService;
 
     public List<ChatDTO> loadChats() {
         String authenticatedUser = AuthContextHolder.getEmail();
@@ -46,6 +47,10 @@ public class MessageService {
     }
 
     public MessageDTO sendMessage(SendMessagePayload sendMessagePayload) {
+        if (!contactService.checkContact(sendMessagePayload.getReceiver())) {
+            throw new RuntimeException("Contact not found");
+        }
+
         Message message = modelMapper.map(sendMessagePayload, Message.class);
         message.setSender(AuthContextHolder.getEmail());
         message.setStatus(MessageStatus.SENT);
@@ -62,16 +67,24 @@ public class MessageService {
     }
 
     public MessagePageDTO loadMessages(GetMessagesPayload data) {
+        if (!contactService.checkContact(data.getContact())) {
+            throw new RuntimeException("Contact not found");
+        }
+
         String authenticatedUser = AuthContextHolder.getEmail();
         Page<Message> messagePage = messageRepository.getChatMessages(
-                authenticatedUser, data.getChat(), data.getBeforeDate(), PageRequest.ofSize(data.getCount()));
-        messageRepository.markAllAsRead(authenticatedUser, data.getChat());
+                authenticatedUser, data.getContact(), data.getBeforeDate(), PageRequest.ofSize(data.getCount()));
+        messageRepository.markAllAsRead(authenticatedUser, data.getContact());
 
         List<MessageDTO> messages = modelMapper.map(messagePage.getContent(), new TypeToken<>() {}.getType());
         return new MessagePageDTO(messagePage.getTotalElements(), messages);
     }
 
     public void deleteChatHistory(ContactPayload data) {
+        if (!contactService.checkContact(data.getContact())) {
+            throw new RuntimeException("Contact not found");
+        }
+
         String authenticatedUser = AuthContextHolder.getEmail();
         messageRepository.deleteChatHistory(authenticatedUser, data.getContact());
 

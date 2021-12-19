@@ -9,10 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tr.com.bilkent.wassapp.config.AuthContextHolder;
 import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
-import tr.com.bilkent.wassapp.model.payload.ContactPayload;
-import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
-import tr.com.bilkent.wassapp.model.payload.MessageIdPayload;
-import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
+import tr.com.bilkent.wassapp.model.payload.*;
+import tr.com.bilkent.wassapp.service.ContactService;
 import tr.com.bilkent.wassapp.service.MessageService;
 import tr.com.bilkent.wassapp.service.UserService;
 
@@ -28,10 +26,14 @@ public class SocketIOReceiver {
     private final Validator validator;
     private final MessageService messageService;
     private final UserService userService;
+    private final ContactService contactService;
 
     @PostConstruct
     public void start() {
         server.addEventListener("whoAmI", String.class, whoAmIListener());
+        server.addEventListener("sendMessageRequest", ContactPayload.class, sendMessageRequestListener());
+        server.addEventListener("getMessageRequests", String.class, getMessageRequestsListener());
+        server.addEventListener("answerMessageRequest", MessageRequestAnswerPayload.class, answerMessageRequestListener());
         server.addEventListener("getChats", String.class, getChatsListener());
         server.addEventListener("message", SendMessagePayload.class, messageListener());
         server.addEventListener("getMessages", GetMessagesPayload.class, getMessagesListener());
@@ -45,6 +47,35 @@ public class SocketIOReceiver {
             public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
                 String authenticatedUser = AuthContextHolder.getEmail();
                 ackSender.sendAckData(new WassAppResponse<>(userService.getUserDTOByEmail(authenticatedUser)));
+            }
+        };
+    }
+
+    private ValidatedDataListener<ContactPayload> sendMessageRequestListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, ContactPayload data, AckRequest ackSender) {
+                contactService.sendMessageRequest(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
+            }
+        };
+    }
+
+    private ValidatedDataListener<MessageRequestAnswerPayload> answerMessageRequestListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, MessageRequestAnswerPayload data, AckRequest ackSender) {
+                contactService.answerMessageRequest(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
+            }
+        };
+    }
+
+    private DataListener<String> getMessageRequestsListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
+                ackSender.sendAckData(new WassAppResponse<>(contactService.getMessageRequests()));
             }
         };
     }

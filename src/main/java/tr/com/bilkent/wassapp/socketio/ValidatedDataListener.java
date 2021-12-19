@@ -29,7 +29,7 @@ public abstract class ValidatedDataListener<T> implements DataListener<T> {
             try {
                 onValidatedData(client, data, ackSender);
             } catch (Exception e) {
-                log.error("Exception occurred", e);
+                log.warn("Exception occurred", e);
                 ackSender.sendAckData(new WassAppResponse<>(400, e.getMessage()));
             }
             return;

@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 public class GetMessagesPayload {
 
     @NotNull
-    private String chat;
+    private String contact;
     private OffsetDateTime beforeDate = OffsetDateTime.now();
     private int count = 100;
 }
