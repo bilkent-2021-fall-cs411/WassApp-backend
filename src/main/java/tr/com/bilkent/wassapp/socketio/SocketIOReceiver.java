@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tr.com.bilkent.wassapp.config.AuthContextHolder;
-import tr.com.bilkent.wassapp.model.dto.MessageDTO;
 import tr.com.bilkent.wassapp.model.dto.WassAppResponse;
 import tr.com.bilkent.wassapp.model.payload.GetMessagesPayload;
 import tr.com.bilkent.wassapp.model.payload.SendMessagePayload;
@@ -41,7 +40,7 @@ public class SocketIOReceiver {
             @Override
             public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
                 String authenticatedUser = AuthContextHolder.getEmail();
-                ackSender.sendAckData(userService.getUserDTOByEmail(authenticatedUser));
+                ackSender.sendAckData(new WassAppResponse<>(userService.getUserDTOByEmail(authenticatedUser)));
             }
         };
     }
@@ -50,7 +49,7 @@ public class SocketIOReceiver {
         return new ValidatedDataListener<>(validator) {
             @Override
             public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
-                ackSender.sendAckData(messageService.loadChats());
+                ackSender.sendAckData(new WassAppResponse<>(messageService.loadChats()));
             }
         };
     }
@@ -59,8 +58,7 @@ public class SocketIOReceiver {
         return new ValidatedDataListener<>(validator) {
             @Override
             public void onValidatedData(SocketIOClient client, SendMessagePayload data, AckRequest ackSender) {
-                MessageDTO messageDTO = messageService.sendMessage(data);
-                ackSender.sendAckData(new WassAppResponse<>(messageDTO));
+                ackSender.sendAckData(new WassAppResponse<>(messageService.sendMessage(data)));
             }
         };
     }
@@ -69,7 +67,7 @@ public class SocketIOReceiver {
         return new ValidatedDataListener<>(validator) {
             @Override
             public void onValidatedData(SocketIOClient client, GetMessagesPayload data, AckRequest ackSender) {
-                ackSender.sendAckData(messageService.loadMessages(data));
+                ackSender.sendAckData(new WassAppResponse<>(messageService.loadMessages(data)));
             }
         };
     }
