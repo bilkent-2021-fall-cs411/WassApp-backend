@@ -91,6 +91,18 @@ public class MessageService {
         socketIOHandler.send(data.getContact(), "deleteChatHistory", new ContactPayload(authenticatedUser));
     }
 
+    public void readMessage(MessageIdPayload data) {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        Message message = messageRepository.findById(data.getMessageId())
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (!message.getReceiver().equals(authenticatedUser)) {
+            throw new RuntimeException("You are not allowed to mark this message as read");
+        }
+
+        message.setStatus(MessageStatus.READ);
+        messageRepository.save(message);
+    }
+
     public void deleteMessage(MessageIdPayload data) {
         String authenticatedUser = AuthContextHolder.getEmail();
         Message message = messageRepository.findById(data.getMessageId())

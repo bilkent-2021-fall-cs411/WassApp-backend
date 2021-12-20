@@ -38,6 +38,7 @@ public class SocketIOReceiver {
         server.addEventListener("getContacts", String.class, getContactsListener());
         server.addEventListener("getChats", String.class, getChatsListener());
         server.addEventListener("message", SendMessagePayload.class, messageListener());
+        server.addEventListener("readMessage", MessageIdPayload.class, readMessageListener());
         server.addEventListener("getMessages", GetMessagesPayload.class, getMessagesListener());
         server.addEventListener("deleteMessage", MessageIdPayload.class, deleteMessageListener());
         server.addEventListener("deleteChatHistory", ContactPayload.class, deleteChatHistoryListener());
@@ -115,6 +116,16 @@ public class SocketIOReceiver {
             @Override
             public void onValidatedData(SocketIOClient client, SendMessagePayload data, AckRequest ackSender) {
                 ackSender.sendAckData(new WassAppResponse<>(messageService.sendMessage(data)));
+            }
+        };
+    }
+
+    private ValidatedDataListener<MessageIdPayload> readMessageListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, MessageIdPayload data, AckRequest ackSender) {
+                messageService.readMessage(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
             }
         };
     }
