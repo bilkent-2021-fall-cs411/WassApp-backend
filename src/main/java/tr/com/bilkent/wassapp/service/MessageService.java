@@ -41,7 +41,7 @@ public class MessageService {
         return lastMessages.stream().map(message -> {
             String otherUserEmail = authenticatedUser.equals(message.getSender()) ? message.getReceiver() : message.getSender();
             UserDTO otherUser = userService.getUserDTOByEmail(otherUserEmail);
-            long unreadMessages = messageRepository.countUnreadMessages(authenticatedUser, otherUserEmail);
+            long unreadMessages = messageRepository.countBySenderAndReceiverAndStatusIn(otherUserEmail, authenticatedUser, List.of(MessageStatus.SENT, MessageStatus.DELIVERED));
             return new ChatDTO(otherUser, message, unreadMessages);
         }).collect(Collectors.toList());
     }
