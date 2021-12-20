@@ -67,10 +67,32 @@ public class ContactService {
         socketIOHandler.send(data.getContact(), "messageRequestAnswer", new MessageRequestAnswerPayload(authenticatedUser, data.getAnswer()));
     }
 
+    public List<UserDTO> getContacts() {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        User user = userService.getUserByEmail(authenticatedUser);
+        Set<String> contacts = user.getContacts();
+
+        return contacts.stream().map(userService::getUserDTOByEmail).collect(Collectors.toList());
+    }
+
     public boolean checkContact(String contact) {
         String authenticatedUser = AuthContextHolder.getEmail();
         User user = userService.getUserByEmail(authenticatedUser);
         return user.getContacts().contains(contact);
     }
 
+    public void deleteContact(ContactPayload data) {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        User user = userService.getUserByEmail(authenticatedUser);
+        User contact = userService.getUserByEmail(data.getContact());
+        if (!user.getContacts().remove(data.getContact())) {
+            throw new RuntimeException("No such contact");
+        }
+
+        contact.getContacts().remove(authenticatedUser);
+        userRepository.save(user);
+        userRepository.save(contact);
+
+        socketIOHandler.send(data.getContact(), "deleteContact", new ContactPayload(authenticatedUser));
+    }
 }

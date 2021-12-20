@@ -31,14 +31,17 @@ public class SocketIOReceiver {
     @PostConstruct
     public void start() {
         server.addEventListener("whoAmI", String.class, whoAmIListener());
+        server.addEventListener("searchUsers", ContactPayload.class, searchUsersListener());
         server.addEventListener("sendMessageRequest", ContactPayload.class, sendMessageRequestListener());
         server.addEventListener("getMessageRequests", String.class, getMessageRequestsListener());
         server.addEventListener("answerMessageRequest", MessageRequestAnswerPayload.class, answerMessageRequestListener());
+        server.addEventListener("getContacts", String.class, getContactsListener());
         server.addEventListener("getChats", String.class, getChatsListener());
         server.addEventListener("message", SendMessagePayload.class, messageListener());
         server.addEventListener("getMessages", GetMessagesPayload.class, getMessagesListener());
         server.addEventListener("deleteMessage", MessageIdPayload.class, deleteMessageListener());
         server.addEventListener("deleteChatHistory", ContactPayload.class, deleteChatHistoryListener());
+        server.addEventListener("deleteContact", ContactPayload.class, deleteContactListener());
     }
 
     private DataListener<String> whoAmIListener() {
@@ -47,6 +50,15 @@ public class SocketIOReceiver {
             public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
                 String authenticatedUser = AuthContextHolder.getEmail();
                 ackSender.sendAckData(new WassAppResponse<>(userService.getUserDTOByEmail(authenticatedUser)));
+            }
+        };
+    }
+
+    private ValidatedDataListener<ContactPayload> searchUsersListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, ContactPayload data, AckRequest ackSender) {
+                ackSender.sendAckData(new WassAppResponse<>(userService.search(data)));
             }
         };
     }
@@ -80,6 +92,15 @@ public class SocketIOReceiver {
         };
     }
 
+    private DataListener<String> getContactsListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, String data, AckRequest ackSender) {
+                ackSender.sendAckData(new WassAppResponse<>(contactService.getContacts()));
+            }
+        };
+    }
+
     private DataListener<String> getChatsListener() {
         return new ValidatedDataListener<>(validator) {
             @Override
@@ -107,6 +128,16 @@ public class SocketIOReceiver {
         };
     }
 
+    private ValidatedDataListener<MessageIdPayload> deleteMessageListener() {
+        return new ValidatedDataListener<>(validator) {
+            @Override
+            public void onValidatedData(SocketIOClient client, MessageIdPayload data, AckRequest ackSender) {
+                messageService.deleteMessage(data);
+                ackSender.sendAckData(new WassAppResponse<>("OK"));
+            }
+        };
+    }
+
     private ValidatedDataListener<ContactPayload> deleteChatHistoryListener() {
         return new ValidatedDataListener<>(validator) {
             @Override
@@ -117,11 +148,11 @@ public class SocketIOReceiver {
         };
     }
 
-    private ValidatedDataListener<MessageIdPayload> deleteMessageListener() {
+    private ValidatedDataListener<ContactPayload> deleteContactListener() {
         return new ValidatedDataListener<>(validator) {
             @Override
-            public void onValidatedData(SocketIOClient client, MessageIdPayload data, AckRequest ackSender) {
-                messageService.deleteMessage(data);
+            public void onValidatedData(SocketIOClient client, ContactPayload data, AckRequest ackSender) {
+                contactService.deleteContact(data);
                 ackSender.sendAckData(new WassAppResponse<>("OK"));
             }
         };
