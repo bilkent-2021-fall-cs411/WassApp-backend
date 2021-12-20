@@ -51,4 +51,23 @@ public interface MessageRepository extends MongoRepository<Message, String>, Cus
                     "    }",
             "    { $sort: { sendDate: -1 }}"})
     AggregationResults<Message> findChatsOfUser(String email);
+
+    @Query(value = "{\n" +
+            "    $or: [{\n" +
+            "        $and: [{\n" +
+            "            sender: ?0\n" +
+            "        }, {\n" +
+            "            receiver: ?1\n" +
+            "        }]\n" +
+            "    }, {\n" +
+            "        $and: [{\n" +
+            "            sender: ?1\n" +
+            "        }, {\n" +
+            "            receiver: ?0\n" +
+            "        }]\n" +
+            "    }],\n" +
+            "    status: {$ne: \"READ\"}\n" +
+            "}", count = true)
+    long countUnreadMessages(String sender, String receiver);
+
 }

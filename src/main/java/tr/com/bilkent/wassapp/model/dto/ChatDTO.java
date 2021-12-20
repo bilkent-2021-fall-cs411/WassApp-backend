@@ -8,4 +8,5 @@ import lombok.Data;
 public class ChatDTO {
     private UserDTO otherUser;
     private MessageDTO lastMessage;
+    private Long unreadMessages;
 }

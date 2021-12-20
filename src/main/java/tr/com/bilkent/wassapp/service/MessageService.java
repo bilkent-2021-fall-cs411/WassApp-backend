@@ -32,7 +32,6 @@ public class MessageService {
     private final ModelMapper modelMapper;
     private final SocketIOHandler socketIOHandler;
     private final UserService userService;
-    private final ContactService contactService;
 
     public List<ChatDTO> loadChats() {
         String authenticatedUser = AuthContextHolder.getEmail();
@@ -42,12 +41,13 @@ public class MessageService {
         return lastMessages.stream().map(message -> {
             String otherUserEmail = authenticatedUser.equals(message.getSender()) ? message.getReceiver() : message.getSender();
             UserDTO otherUser = userService.getUserDTOByEmail(otherUserEmail);
-            return new ChatDTO(otherUser, message);
+            long unreadMessages = messageRepository.countUnreadMessages(authenticatedUser, otherUserEmail);
+            return new ChatDTO(otherUser, message, unreadMessages);
         }).collect(Collectors.toList());
     }
 
     public MessageDTO sendMessage(SendMessagePayload sendMessagePayload) {
-        if (!contactService.checkContact(sendMessagePayload.getReceiver())) {
+        if (!userService.checkContact(sendMessagePayload.getReceiver())) {
             throw new RuntimeException("Contact not found");
         }
 
@@ -67,7 +67,7 @@ public class MessageService {
     }
 
     public MessagePageDTO loadMessages(GetMessagesPayload data) {
-        if (!contactService.checkContact(data.getContact())) {
+        if (!userService.checkContact(data.getContact())) {
             throw new RuntimeException("Contact not found");
         }
 
@@ -81,7 +81,7 @@ public class MessageService {
     }
 
     public void deleteChatHistory(ContactPayload data) {
-        if (!contactService.checkContact(data.getContact())) {
+        if (!userService.checkContact(data.getContact())) {
             throw new RuntimeException("Contact not found");
         }
 

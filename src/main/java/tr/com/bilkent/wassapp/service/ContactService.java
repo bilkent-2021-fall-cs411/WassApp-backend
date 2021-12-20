@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class ContactService {
 
     private final UserService userService;
+    private final MessageService messageService;
     private final UserRepository userRepository;
     private final SocketIOHandler socketIOHandler;
 
@@ -75,12 +76,6 @@ public class ContactService {
         return contacts.stream().map(userService::getUserDTOByEmail).collect(Collectors.toList());
     }
 
-    public boolean checkContact(String contact) {
-        String authenticatedUser = AuthContextHolder.getEmail();
-        User user = userService.getUserByEmail(authenticatedUser);
-        return user.getContacts().contains(contact);
-    }
-
     public void deleteContact(ContactPayload data) {
         String authenticatedUser = AuthContextHolder.getEmail();
         User user = userService.getUserByEmail(authenticatedUser);
@@ -93,6 +88,7 @@ public class ContactService {
         userRepository.save(user);
         userRepository.save(contact);
 
+        messageService.deleteChatHistory(data);
         socketIOHandler.send(data.getContact(), "deleteContact", new ContactPayload(authenticatedUser));
     }
 }

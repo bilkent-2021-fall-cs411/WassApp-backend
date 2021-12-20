@@ -62,4 +62,10 @@ public class UserService {
         }).collect(Collectors.toList());
     }
 
+    public boolean checkContact(String contact) {
+        String authenticatedUser = AuthContextHolder.getEmail();
+        User user = getUserByEmail(authenticatedUser);
+        return user.getContacts().contains(contact);
+    }
+
 }
