@@ -84,6 +84,7 @@ public class ContactService {
             throw new RuntimeException("No such contact");
         }
         messageService.deleteChatHistory(data);
+        socketIOHandler.send(authenticatedUser, "deleteChatHistory", data);
 
         contact.getContacts().remove(authenticatedUser);
         userRepository.save(user);
