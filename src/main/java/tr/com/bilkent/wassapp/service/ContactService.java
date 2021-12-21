@@ -35,7 +35,7 @@ public class ContactService {
 
         if (contact.getMessageRequests().add(authenticatedUser)) {
             userRepository.save(contact);
-            socketIOHandler.send(data.getContact(), "messageRequest", new ContactPayload(authenticatedUser));
+            socketIOHandler.send(data.getContact(), "messageRequest", userService.getUserDTOByEmail(authenticatedUser));
         } else {
             throw new RuntimeException("Message request already sent");
         }
