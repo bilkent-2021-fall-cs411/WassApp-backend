@@ -83,12 +83,12 @@ public class ContactService {
         if (!user.getContacts().remove(data.getContact())) {
             throw new RuntimeException("No such contact");
         }
+        messageService.deleteChatHistory(data);
 
         contact.getContacts().remove(authenticatedUser);
         userRepository.save(user);
         userRepository.save(contact);
 
-        messageService.deleteChatHistory(data);
         socketIOHandler.send(data.getContact(), "deleteContact", new ContactPayload(authenticatedUser));
     }
 }
