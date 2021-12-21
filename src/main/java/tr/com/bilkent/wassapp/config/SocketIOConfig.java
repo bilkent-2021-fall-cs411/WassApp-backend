@@ -48,6 +48,7 @@ public class SocketIOConfig {
                 super.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
             }
         });
+        config.setRandomSession(true);
 
         return new SocketIOServer(config);
     }
